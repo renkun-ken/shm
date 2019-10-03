@@ -1,0 +1,7 @@
+^LICENSE\.md$
+^shm\.Rproj$
+^\.Rproj\.user$
+^.*\.Rproj$
+^\.Rproj\.user$
+^src/\.clang-format$
+^\.vscode$

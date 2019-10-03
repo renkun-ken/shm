@@ -1,0 +1,21 @@
+Package: shm
+Title: A Toolbox for Working with Shared Memory
+Version: 0.0.0.9000
+Authors@R: 
+    person(given = "Kun",
+           family = "Ren",
+           role = c("aut", "cre"),
+           email = "ken@renkun.me")
+Description: Provides functions to share R objects in shared memory.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 6.1.1
+LinkingTo: 
+    Rcpp, BH
+Imports: 
+    Rcpp
+URL: https://github.com/renkun-ken/shm
+BugReports: https://github.com/renkun-ken/shm/issues
+ByteCompile: TRUE
