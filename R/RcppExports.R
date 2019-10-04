@@ -36,3 +36,8 @@ shm_get <- function(segment, name) {
     .Call(`_shm_shm_get`, segment, name)
 }
 
+#' @export
+shm_set_list <- function(x, segment, threads = 1L) {
+    invisible(.Call(`_shm_shm_set_list`, x, segment, threads))
+}
+

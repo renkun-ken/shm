@@ -19,3 +19,4 @@ Imports:
 URL: https://github.com/renkun-ken/shm
 BugReports: https://github.com/renkun-ken/shm/issues
 ByteCompile: TRUE
+SystemRequirements: OpenMP

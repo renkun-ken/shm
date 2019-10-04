@@ -3,7 +3,9 @@
 #include <RApiSerializeAPI.h>
 
 #include "shm.h"
+#include <omp.h>
 #include <string>
+#include <vector>
 
 using namespace Rcpp;
 using namespace boost::interprocess;
@@ -142,5 +144,65 @@ SEXP shm_get(const std::string &segment, const std::string &name) {
     return unserializeFromRaw(shm_get<RawVector>(&seg, name));
   }
   default: { stop("Unsupported data type"); }
+  }
+}
+
+template <typename T>
+void shm_set2(const T *x, std::size_t size, int type,
+              const std::string &segment, const std::string &name) {
+  managed_shared_memory seg(open_only, segment.c_str());
+  typedef typename SHARED_VECTOR_TYPE<T>::ShmemAllocator ShmemAllocator;
+  typedef typename SHARED_VECTOR_TYPE<T>::SharedVector SharedVector;
+  const ShmemAllocator alloc_inst(seg.get_segment_manager());
+  const std::string &str_type = get_type_str(name);
+  seg.construct<int>(str_type.c_str())(type);
+  seg.construct<SharedVector>(name.c_str())(x, x + size, alloc_inst);
+}
+
+//' @export
+// [[Rcpp::export]]
+void shm_set_list(const List &x, const std::string &segment, int threads = 1) {
+  std::size_t n = x.size();
+  std::vector<void *> px(n);
+  std::vector<int> types(n);
+  std::vector<std::size_t> lengths(n);
+  std::vector<std::string> names(n);
+  std::size_t segment_size = 0;
+  for (int i = 0; i < n; ++i) {
+    px[i] = DATAPTR(x[i]);
+    types[i] = TYPEOF(x[i]);
+    lengths[i] = XLENGTH(x[i]);
+    switch (types[i]) {
+    case INTSXP: {
+      segment_size += sizeof(IntegerVector::stored_type) * lengths[i];
+      break;
+    }
+    case REALSXP: {
+      segment_size += sizeof(NumericVector::stored_type) * lengths[i];
+      break;
+    }
+    default:
+      stop("Unsupported input type");
+    }
+  }
+  const CharacterVector &_names = x.names();
+  for (int i = 0; i < n; ++i) {
+    const std::string &name = as<std::string>(_names[i]);
+    names[i] = name;
+  }
+  // shared_memory_object::remove(segment.c_str());
+  // managed_shared_memory seg(create_only, segment.c_str(), segment_size + 1024);
+#pragma omp parallel for num_threads(threads)
+  for (int i = 0; i < n; ++i) {
+    switch (types[i]) {
+    case INTSXP: {
+      shm_set2((int *)px[i], lengths[i], INTSXP, segment, names[i]);
+      break;
+    }
+    case REALSXP: {
+      shm_set2((double *)px[i], lengths[i], REALSXP, segment, names[i]);
+      break;
+    }
+    }
   }
 }

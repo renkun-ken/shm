@@ -51,12 +51,25 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// shm_set_list
+void shm_set_list(const List& x, const std::string& segment, int threads);
+RcppExport SEXP _shm_shm_set_list(SEXP xSEXP, SEXP segmentSEXP, SEXP threadsSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const List& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type segment(segmentSEXP);
+    Rcpp::traits::input_parameter< int >::type threads(threadsSEXP);
+    shm_set_list(x, segment, threads);
+    return R_NilValue;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_shm_shm_remove_segment", (DL_FUNC) &_shm_shm_remove_segment, 1},
     {"_shm_shm_create_segment", (DL_FUNC) &_shm_shm_create_segment, 2},
     {"_shm_shm_set", (DL_FUNC) &_shm_shm_set, 3},
     {"_shm_shm_get", (DL_FUNC) &_shm_shm_get, 2},
+    {"_shm_shm_set_list", (DL_FUNC) &_shm_shm_set_list, 3},
     {NULL, NULL, 0}
 };
 
