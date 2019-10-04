@@ -17,12 +17,12 @@ BEGIN_RCPP
 END_RCPP
 }
 // shm_create_segment
-void shm_create_segment(const std::string& segment, R_xlen_t size);
+void shm_create_segment(const std::string& segment, std::size_t size);
 RcppExport SEXP _shm_shm_create_segment(SEXP segmentSEXP, SEXP sizeSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const std::string& >::type segment(segmentSEXP);
-    Rcpp::traits::input_parameter< R_xlen_t >::type size(sizeSEXP);
+    Rcpp::traits::input_parameter< std::size_t >::type size(sizeSEXP);
     shm_create_segment(segment, size);
     return R_NilValue;
 END_RCPP

@@ -5,6 +5,7 @@
 #include "shm.h"
 #include <string>
 
+using namespace Rcpp;
 using namespace boost::interprocess;
 
 inline std::string get_type_str(const std::string &name) {
@@ -16,7 +17,6 @@ inline std::string get_type_str(const std::string &name) {
 //' @export
 // [[Rcpp::export]]
 bool shm_remove_segment(const std::string &segment) {
-  using namespace boost::interprocess;
   return shared_memory_object::remove(segment.c_str());
 }
 
@@ -25,7 +25,7 @@ bool shm_remove_segment(const std::string &segment) {
 //' @param size initial size in bytes
 //' @export
 // [[Rcpp::export]]
-void shm_create_segment(const std::string &segment, R_xlen_t size) {
+void shm_create_segment(const std::string &segment, std::size_t size) {
   managed_shared_memory seg(create_only, segment.c_str(), size);
 }
 
@@ -64,7 +64,6 @@ void shm_set(const T &x, const std::string &segment, const std::string &name) {
 // [[Rcpp::export]]
 void shm_set(const SEXP &x, const std::string &segment,
              const std::string &name) {
-  using namespace Rcpp;
   switch (TYPEOF(x)) {
   case RAWSXP: {
     const RawVector _x = as<RawVector>(x);
@@ -118,11 +117,10 @@ T shm_get(managed_shared_memory *seg, const std::string &name) {
 // [[Rcpp::export]]
 SEXP shm_get(const std::string &segment, const std::string &name) {
   managed_shared_memory seg(open_only, segment.c_str());
-  using namespace Rcpp;
   const std::string &str_type = get_type_str(name);
   const int *ptype = seg.find<int>(str_type.c_str()).first;
   if (ptype == nullptr) {
-    stop("Invalid type");
+    return R_NilValue;
   }
   switch (ptype[0]) {
   case RAWSXP: {
