@@ -1,7 +1,10 @@
-#include "shm.h"
 #include <Rcpp.h>
+
+#include <RApiSerializeAPI.h>
+
+#include "shm.h"
 #include <string>
-using namespace Rcpp;
+
 using namespace boost::interprocess;
 
 inline std::string get_type_str(const std::string &name) {
@@ -39,10 +42,16 @@ void shm_set(const T *x, std::size_t size, int type, const std::string &segment,
 }
 
 template <typename T>
-void shm_set(const T &x, const std::string &segment, const std::string &name) {
+void shm_set(const T &x, int type, const std::string &segment,
+             const std::string &name) {
   typedef typename T::stored_type stored_type;
   const stored_type *px = (stored_type *)DATAPTR(x);
-  shm_set(px, XLENGTH(x), TYPEOF(x), segment, name);
+  shm_set(px, XLENGTH(x), type, segment, name);
+}
+
+template <typename T>
+void shm_set(const T &x, const std::string &segment, const std::string &name) {
+  shm_set(x, TYPEOF(x), segment, name);
 }
 
 //' Set object in shared memory
@@ -50,10 +59,12 @@ void shm_set(const T &x, const std::string &segment, const std::string &name) {
 //' @param segment a string
 //' @param name a string
 //' @param overwrite Overwrite segment if exists
+//' @importFrom RApiSerialize serializeToRaw
 //' @export
 // [[Rcpp::export]]
 void shm_set(const SEXP &x, const std::string &segment,
              const std::string &name) {
+  using namespace Rcpp;
   switch (TYPEOF(x)) {
   case RAWSXP: {
     const RawVector _x = as<RawVector>(x);
@@ -80,6 +91,11 @@ void shm_set(const SEXP &x, const std::string &segment,
     shm_set(_x, segment, name);
     break;
   }
+  case STRSXP: {
+    const RawVector &_x = serializeToRaw(x);
+    shm_set(_x, STRSXP, segment, name);
+    break;
+  }
   default:
     stop("Unsupported type of input");
   }
@@ -97,10 +113,12 @@ T shm_get(managed_shared_memory *seg, const std::string &name) {
 //' Get object from shared memory
 //' @param segment segment name
 //' @param name object name
+//' @importFrom RApiSerialize unserializeFromRaw
 //' @export
 // [[Rcpp::export]]
 SEXP shm_get(const std::string &segment, const std::string &name) {
   managed_shared_memory seg(open_only, segment.c_str());
+  using namespace Rcpp;
   const std::string &str_type = get_type_str(name);
   const int *ptype = seg.find<int>(str_type.c_str()).first;
   if (ptype == nullptr) {
@@ -121,6 +139,9 @@ SEXP shm_get(const std::string &segment, const std::string &name) {
   }
   case CPLXSXP: {
     return shm_get<ComplexVector>(&seg, name);
+  }
+  case STRSXP: {
+    return unserializeFromRaw(shm_get<RawVector>(&seg, name));
   }
   default: { stop("Unsupported data type"); }
   }

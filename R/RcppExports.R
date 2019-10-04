@@ -21,6 +21,7 @@ shm_create_segment <- function(segment, size) {
 #' @param segment a string
 #' @param name a string
 #' @param overwrite Overwrite segment if exists
+#' @importFrom RApiSerialize serializeToRaw
 #' @export
 shm_set <- function(x, segment, name) {
     invisible(.Call(`_shm_shm_set`, x, segment, name))
@@ -29,6 +30,7 @@ shm_set <- function(x, segment, name) {
 #' Get object from shared memory
 #' @param segment segment name
 #' @param name object name
+#' @importFrom RApiSerialize unserializeFromRaw
 #' @export
 shm_get <- function(segment, name) {
     .Call(`_shm_shm_get`, segment, name)

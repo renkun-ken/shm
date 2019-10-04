@@ -13,9 +13,9 @@ LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 6.1.1
 LinkingTo: 
-    Rcpp, BH
+    Rcpp, BH, RApiSerialize
 Imports: 
-    Rcpp
+    Rcpp, RApiSerialize
 URL: https://github.com/renkun-ken/shm
 BugReports: https://github.com/renkun-ken/shm/issues
 ByteCompile: TRUE
